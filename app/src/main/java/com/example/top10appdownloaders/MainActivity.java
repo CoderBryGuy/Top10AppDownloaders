@@ -3,7 +3,6 @@ package com.example.top10appdownloaders;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -93,9 +92,12 @@ public class MainActivity extends AppCompatActivity {
             ParseApplications parseApplications = new ParseApplications();
             parseApplications.parse(s);
 
-            ArrayAdapter<FeedEntry> arrayAdapter = new ArrayAdapter<FeedEntry>(getApplicationContext(), R.layout.list_item, parseApplications.getApplications());
-            listApps.setAdapter(arrayAdapter
-            );
+//            ArrayAdapter<FeedEntry> arrayAdapter = new ArrayAdapter<FeedEntry>(getApplicationContext(), R.layout.list_item, parseApplications.getApplications());
+//            listApps.setAdapter(arrayAdapter
+//            );
+
+            FeedAdapter feedAdapter = new FeedAdapter(MainActivity.this, R.layout.list_record, parseApplications.getApplications());
+            listApps.setAdapter(feedAdapter);
         }
     }
 }
