@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item android:title="FreeApps" android:id="@+id/mnuFree"/>
+    <item android:title="Paid Apps" android:id="@+id/mnuPaid"/>
+    <item android:title="Songs" android:id="@+id/mnuSongs"/>
+    <group
+            android:id="@+id/mnugrpLimit" android:checkableBehavior="single" android:visible="true"
+            android:enabled="true">
+        <item android:title="Top 10" android:id="@+id/mnu10" android:checked="true"/>
+        <item android:title="Top 25" android:id="@+id/mnu25"/>
+    </group>
 </menu>

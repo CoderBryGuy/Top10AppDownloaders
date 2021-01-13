@@ -3,7 +3,10 @@ package com.example.top10appdownloaders;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ListView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
@@ -16,6 +19,8 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private ListView listApps;
+    private String feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
+    private int feedLimit = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +28,54 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         listApps = (ListView)findViewById(R.id.xmlListView);
-
-        Log.d(TAG, "onCreate:  starting async task");
-        DownloadData downloadData = new DownloadData();
-        downloadData.execute("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml");
-        Log.d(TAG, "onCreate: done");
+        downloadURL(String.format(feedURL, feedLimit));
     }
-    
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+       getMenuInflater().inflate(R.menu.feeds_menu, menu);
+       return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id){
+            case R.id.mnuFree:
+                feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
+                break;
+            case R.id.mnuPaid:
+                feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/toppaidapplications/limit=%d/xml";
+                break;
+            case R.id.mnuSongs:
+                feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topsongs/limit=%d/xml";
+                break;
+            case R.id.mnu10:
+            case R.id.mnu25:
+                if(!item.isChecked()){
+                    item.setChecked(true);
+                    feedLimit = 35 - feedLimit;
+                    Log.d(TAG, "onOptionsItemSelected: " + item.getTitle() + "setting feedLimit to " + feedLimit);
+                }else {
+                    Log.d(TAG, "onOptionsItemSelected: " + item.getTitle() + "feed limit unchanged");
+                }
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        downloadURL(String.format(feedURL, feedLimit));
+        return true;
+
+    }
+
+    private void downloadURL(String feedURL) {
+        Log.d(TAG, "downloadURL:  starting async task");
+        DownloadData downloadData = new DownloadData();
+        downloadData.execute(feedURL);
+        Log.d(TAG, "downloadURL: done");
+    }
+
     private class DownloadData extends AsyncTask<String, Void, String> {
         private static final String TAG = "DownloadData";
 
@@ -92,12 +138,8 @@ public class MainActivity extends AppCompatActivity {
             ParseApplications parseApplications = new ParseApplications();
             parseApplications.parse(s);
 
-//            ArrayAdapter<FeedEntry> arrayAdapter = new ArrayAdapter<FeedEntry>(getApplicationContext(), R.layout.list_item, parseApplications.getApplications());
-//            listApps.setAdapter(arrayAdapter
-//            );
-
-            FeedAdapter feedAdapter = new FeedAdapter(MainActivity.this, R.layout.list_record, parseApplications.getApplications());
-            listApps.setAdapter(feedAdapter);
+            FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, parseApplications.getApplications());
+            listApps.setAdapter(arrayAdapter);
         }
     }
 }
