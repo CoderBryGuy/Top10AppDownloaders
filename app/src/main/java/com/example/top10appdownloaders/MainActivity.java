@@ -160,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
           return null;
         }
 
-
         @Override
         protected void onPostExecute(String s) {
 
@@ -169,27 +168,24 @@ public class MainActivity extends AppCompatActivity {
             ParseApplications parseApplications = new ParseApplications();
             parseApplications.parse(s);
 
-            System.out.println("AM I GETTING TO HERE 1");
-
             for (EntryData data : feedEntries.myFeedEntries
                  ) {
-                System.out.println("AM I GETTING TO HERE IN LOOP");
                 if((data.getMenuResource() == currentMenuId) && (data.getFeedLimit() == feedLimit) && data.isNull()){
-                    System.out.println("AM I GETTING TO HERE 3");
                     data.setApplications(parseApplications.getApplications());
-                    FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
-                    listApps.setAdapter(arrayAdapter);
+                    setFeedAdapter(data);
                     Log.d(TAG, "onPostExecute: setting data.setApplications()");
                     return;
                 }else if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
-                    FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
-                    listApps.setAdapter(arrayAdapter);
+                    setFeedAdapter(data);
                     Log.d(TAG, "onPostExecute: retrieving data.getApplications()");
                 }
             }
 
-            System.out.println("AM I GETTING TO HERE 4");
-
         }
+
+       public void setFeedAdapter(EntryData data){
+           FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
+           listApps.setAdapter(arrayAdapter);
+       }
     }
 }
