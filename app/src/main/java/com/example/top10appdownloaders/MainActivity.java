@@ -2,11 +2,13 @@ package com.example.top10appdownloaders;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
@@ -21,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     private ListView listApps;
     private String feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
     private int feedLimit = 10;
+    private int currentMenuId = R.id.mnuFree;
+    private final FeedEntries feedEntries = FeedEntries.getInstance();
+    private final String URL_ID = "urlId";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +34,20 @@ public class MainActivity extends AppCompatActivity {
 
         listApps = (ListView)findViewById(R.id.xmlListView);
         downloadURL(String.format(feedURL, feedLimit));
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putString(feedURL, feedURL);
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState: ");
+    }
+
+    @Override
+    public void onRestoreInstanceState(@NonNull Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        feedURL = savedInstanceState.getString(URL_ID, "onRestoreInstanceState() failed");
+        Log.d(TAG, "onRestoreInstanceState: ");
     }
 
     @Override
@@ -48,12 +67,15 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id){
             case R.id.mnuFree:
+                setCurrentMenuId(R.id.mnuFree);
                 feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
                 break;
             case R.id.mnuPaid:
+                setCurrentMenuId(R.id.mnuPaid);
                 feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/toppaidapplications/limit=%d/xml";
                 break;
             case R.id.mnuSongs:
+                setCurrentMenuId(R.id.mnuSongs);
                 feedURL = "http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topsongs/limit=%d/xml";
                 break;
             case R.id.mnu10:
@@ -72,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
         downloadURL(String.format(feedURL, feedLimit));
         return true;
 
+    }
+
+    private void setCurrentMenuId(int id) {
+        currentMenuId = id;
     }
 
     private void downloadURL(String feedURL) {
@@ -143,8 +169,27 @@ public class MainActivity extends AppCompatActivity {
             ParseApplications parseApplications = new ParseApplications();
             parseApplications.parse(s);
 
-            FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, parseApplications.getApplications());
-            listApps.setAdapter(arrayAdapter);
+            System.out.println("AM I GETTING TO HERE 1");
+
+            for (EntryData data : feedEntries.myFeedEntries
+                 ) {
+                System.out.println("AM I GETTING TO HERE IN LOOP");
+                if((data.getMenuResource() == currentMenuId) && (data.getFeedLimit() == feedLimit) && data.isNull()){
+                    System.out.println("AM I GETTING TO HERE 3");
+                    data.setApplications(parseApplications.getApplications());
+                    FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
+                    listApps.setAdapter(arrayAdapter);
+                    Log.d(TAG, "onPostExecute: setting data.setApplications()");
+                    return;
+                }else if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
+                    FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
+                    listApps.setAdapter(arrayAdapter);
+                    Log.d(TAG, "onPostExecute: retrieving data.getApplications()");
+                }
+            }
+
+            System.out.println("AM I GETTING TO HERE 4");
+
         }
     }
 }
