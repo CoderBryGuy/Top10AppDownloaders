@@ -2,13 +2,11 @@ package com.example.top10appdownloaders;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
@@ -34,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         listApps = (ListView)findViewById(R.id.xmlListView);
+
+        if(savedInstanceState != null){
+            feedURL = savedInstanceState.getString(URL_ID, "onRestoreInstanceState() failed");
+            feedLimit = savedInstanceState.getInt(FEED_LIMIT_ID, 10);
+        }
         downloadURL(String.format(feedURL, feedLimit));
     }
 
@@ -45,13 +48,13 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onSaveInstanceState: ");
     }
 
-    @Override
-    public void onRestoreInstanceState(@NonNull Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        feedURL = savedInstanceState.getString(URL_ID, "onRestoreInstanceState() failed");
-        feedLimit = savedInstanceState.getInt(FEED_LIMIT_ID, 10);
-        Log.d(TAG, "onRestoreInstanceState: ");
-    }
+//    @Override
+//    public void onRestoreInstanceState(@NonNull Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+//        super.onRestoreInstanceState(savedInstanceState);
+//        feedURL = savedInstanceState.getString(URL_ID, "onRestoreInstanceState() failed");
+//        feedLimit = savedInstanceState.getInt(FEED_LIMIT_ID, 10);
+//        Log.d(TAG, "onRestoreInstanceState: ");
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -91,6 +94,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "onOptionsItemSelected: " + item.getTitle() + "feed limit unchanged");
                 }
                 break;
+            case R.id.menuRefresh:
+                for (EntryData data : feedEntries.myFeedEntries
+                ) {
+                    if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
+                        data.nullifyApplications();
+                        Log.d(TAG, "onOptionsItemSelected: Refresh called, nullify data.getApplications()");
+                    }
+                }
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -104,10 +116,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void downloadURL(String feedURL) {
+
+        for (EntryData data : feedEntries.myFeedEntries
+             ) {
+            if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
+                setFeedAdapter(data);
+                Log.d(TAG, "downloadURL: XML doc already exists. Retrieving data.getApplications()");
+                return;
+            }
+        }
+
         Log.d(TAG, "downloadURL:  starting async task");
         DownloadData downloadData = new DownloadData();
         downloadData.execute(feedURL);
         Log.d(TAG, "downloadURL: done");
+    }
+
+    public void setFeedAdapter(EntryData data){
+        FeedAdapter<FeedEntry> arrayAdapter = new FeedAdapter<>(getApplicationContext(), R.layout.list_record, data.getApplications());
+        listApps.setAdapter(arrayAdapter);
     }
 
     private class DownloadData extends AsyncTask<String, Void, String> {
@@ -175,20 +202,25 @@ public class MainActivity extends AppCompatActivity {
                  ) {
                 if((data.getMenuResource() == currentMenuId) && (data.getFeedLimit() == feedLimit) && data.isNull()){
                     data.setApplications(parseApplications.getApplications());
-                    setFeedAdapter(data);
+                    MainActivity.this.setFeedAdapter(data);
+//                    setFeedAdapter(data);
                     Log.d(TAG, "onPostExecute: setting data.setApplications()");
                     return;
-                }else if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
-                    setFeedAdapter(data);
-                    Log.d(TAG, "onPostExecute: retrieving data.getApplications()");
                 }
+//                else if(data.getMenuResource() == currentMenuId && data.getFeedLimit() == feedLimit && !data.isNull()){
+//                    setFeedAdapter(data);
+//                    Log.d(TAG, "onPostExecute: retrieving data.getApplications()");
+//                }
             }
 
         }
 
-       public void setFeedAdapter(EntryData data){
-           FeedAdapter arrayAdapter = new FeedAdapter(getApplicationContext(), R.layout.list_record, data.getApplications());
-           listApps.setAdapter(arrayAdapter);
-       }
+
+//        public void setFeedAdapter(EntryData data){
+//            FeedAdapter<FeedEntry> arrayAdapter = new FeedAdapter<>(getApplicationContext(), R.layout.list_record, data.getApplications());
+//            listApps.setAdapter(arrayAdapter);
+//        }
+
+
     }
 }

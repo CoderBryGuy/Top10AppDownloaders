@@ -47,4 +47,8 @@ public class EntryData {
         return feedLimit;
     }
 
+    public void nullifyApplications(){
+        applications = null;
+    }
+
 }

@@ -9,5 +9,6 @@
             android:enabled="true">
         <item android:title="Top 10" android:id="@+id/mnu10" android:checked="true"/>
         <item android:title="Top 25" android:id="@+id/mnu25"/>
+        <item android:title="refresh" android:id="@+id/menuRefresh"/>
     </group>
 </menu>
