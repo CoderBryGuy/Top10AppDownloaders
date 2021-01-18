@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentMenuId = R.id.mnuFree;
     private final FeedEntries feedEntries = FeedEntries.getInstance();
     private final String URL_ID = "urlId";
+    private final String FEED_LIMIT_ID = "feedLimitId";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putString(feedURL, feedURL);
+        outState.putString(URL_ID, feedURL);
+        outState.putInt(FEED_LIMIT_ID, feedLimit);
         super.onSaveInstanceState(outState);
         Log.d(TAG, "onSaveInstanceState: ");
     }
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRestoreInstanceState(@NonNull Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
         super.onRestoreInstanceState(savedInstanceState);
         feedURL = savedInstanceState.getString(URL_ID, "onRestoreInstanceState() failed");
+        feedLimit = savedInstanceState.getInt(FEED_LIMIT_ID, 10);
         Log.d(TAG, "onRestoreInstanceState: ");
     }
 
